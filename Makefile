@@ -1,23 +1,19 @@
-all : calc.out
+all : poetlang.out
 
 ##############################
 #
-# HW 2: Question 1
+# PoetLang Interpreter
 #
-# Compilation: 
-# Option 1: Simply type "make" to compile the calculator (recommended, auto-test included)
-# Option 2: "ocamlbuild calc.native" will also build the calculator
+# Compilation:
+# Option 1: Simply type "make" to compile the interpreter
+# Option 2: Use "ocamlbuild poetlang.native" to build manually
+#
+# Test input is in poetlang.tb
+# Output is saved to poetlang.out
+#
 
-# For testing, you can run the binary executable and test it with
-# standard input via terminal.
-# Or use calc.tb (testbench file): you can modify the file directly
-# with the exprssion you want to test before make. After compiling
-# your executable successfully, the output of test case will be 
-# generate automatically in a file named calc.out
-
-
-calc : scanner.cmo parser.cmo calc.cmo
-	ocamlc -w A -o calc $^
+poetlang : scanner.cmo parser.cmo poetlang.cmo ast.cmo
+	ocamlc -w A -o poetlang $^
 
 %.cmo : %.ml
 	ocamlc -w A -c $<
@@ -34,31 +30,22 @@ parser.ml parser.mli: parser.mly
 parser.cmi: parser.mli ast.cmi
 parser.cmo: parser.ml
 
+scanner.cmi : parser.cmi
 
-scanner.cmi : scanner.mli parser.cmi
-parser.cmi : parser.mli
+poetlang.out : poetlang poetlang.tb
+	./poetlang < poetlang.tb > poetlang.out
 
-
-
-calc.out : calc calc.tb
-	./calc < calc.tb > calc.out
-
-# Compile mli interface files explicitly
+# Compile interface files explicitly
 scanner.cmo : scanner.cmi
-calc.cmo    : calc.cmi
+poetlang.cmo : poetlang.cmi
 
-# Dependencies from ocamldep
-calc.cmo : scanner.cmo parser.cmi ast.cmi
-calc.cmx : scanner.cmx parser.cmx ast.cmi
+# OCaml dependency hints (optional)
+poetlang.cmo : scanner.cmo parser.cmi ast.cmi
 parser.cmo : ast.cmi parser.cmi
-parser.cmx : ast.cmi parser.cmi
 scanner.cmo : parser.cmi
-scanner.cmx : parser.cmx
 
 ##############################
 
 .PHONY : clean
 clean :
-	rm -rf *.cmi *.cmo parser.ml parser.mli scanner.ml calc.out calc
-
-
+	rm -rf *.cmi *.cmo parser.ml parser.mli scanner.ml poetlang.out poetlang
