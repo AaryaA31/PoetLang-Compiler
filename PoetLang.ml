@@ -85,8 +85,6 @@ let rec eval_stmt (vars : value VarMap.t) (stmt : stmt) : value VarMap.t =
         | VBool false -> vars
         | _ -> failwith "Non-boolean condition in while"
       in loop vars
-  | BlockStmt stmts ->
-      List.fold_left eval_stmt vars stmts
   | Block stmts ->
       List.fold_left eval_stmt vars stmts
   | _ -> failwith "Unsupported statement"
