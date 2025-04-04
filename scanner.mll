@@ -1,6 +1,6 @@
 { 
 open Parser
-
+}
 let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 let alphanum = alpha | digit
@@ -8,16 +8,16 @@ let alphanum = alpha | digit
 let id = alpha (alphanum | '_' | '/')*
 let filler_word = alpha+
 
-let whitespace = [' ' '\t' '\r' '\n']
+let whitespace = [' ' '\t' '\r' '\n']+
 let string_char = [^ '"' '\\']
 let escape_seq = "\\" ['n' 't' '\\' '"' '\'']
 
 let comment = "//" [^ '\n']* '\n'
 let block_comment = "/*" ([^ '*'] | '*' [^ '/'])* "*/"
-}
+
 
 rule token = parse
-| whitespace+         { token lexbuf }
+| whitespace         { token lexbuf }
 | comment             { token lexbuf }
 | block_comment       { token lexbuf }
 
@@ -75,9 +75,8 @@ rule token = parse
 
 (* Identifiers & Filler Words *)
 | id as name          { ID(name) }
-| filler_word as fw   { FILLER(fw) }
 
 (* End of file *)
 | eof                 { EOF }
 
-| _ as illegal        { raise (Failure ("Unknown character: " ^ Lexing.lexeme lexbuf)
+| _ as illegal        { raise (Failure ("Unknown character: " ^ Lexing.lexeme lexbuf) )}
