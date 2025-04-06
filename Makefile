@@ -45,7 +45,6 @@ parser.cmo : ast.cmi parser.cmi
 scanner.cmo : parser.cmi
 
 ##############################
-
 .PHONY : clean
 clean :
 	rm -rf *.cmi *.cmo parser.ml parser.mli scanner.ml poetlang.out poetlang
