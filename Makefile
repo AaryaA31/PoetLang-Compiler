@@ -13,8 +13,8 @@
 
 all: poetlang.out
 
-poetlang.out: poetlang poetlang.tb
-	./poetlang < poetlang.tb > poetlang.out
+poetlang.out: poetlang example.mc
+	./poetlang < example.mc > poetlang.out
 
 poetlang: scanner.cmo parser.cmo poetlang.cmo ast.cmo
 	ocamlc -w A -o poetlang $^
