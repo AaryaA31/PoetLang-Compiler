@@ -1,5 +1,3 @@
-all : poetlang.out
-
 ##############################
 #
 # PoetLang Interpreter
@@ -11,40 +9,48 @@ all : poetlang.out
 # Test input is in poetlang.tb
 # Output is saved to poetlang.out
 #
+##############################
 
-poetlang : scanner.cmo parser.cmo poetlang.cmo ast.cmo
+all: poetlang.out
+
+poetlang.out: poetlang poetlang.tb
+	./poetlang < poetlang.tb > poetlang.out
+
+poetlang: scanner.cmo parser.cmo poetlang.cmo ast.cmo
 	ocamlc -w A -o poetlang $^
 
-%.cmo : %.ml
+# Interface rules
+%.cmi: %.mli
 	ocamlc -w A -c $<
 
-%.cmi : %.mli
+# Implementation rules
+%.cmo: %.ml
 	ocamlc -w A -c $<
 
-scanner.ml : scanner.mll
-	ocamllex $^
+# Special rules
+scanner.ml: scanner.mll
+	ocamllex $<
 
 parser.ml parser.mli: parser.mly
 	ocamlyacc parser.mly
 
+# Specific dependency: ast.mli must be compiled to build parser.mli
+ast.cmi: ast.mli
+	ocamlc -w A -c ast.mli
+
+# Order-sensitive compilation
 parser.cmi: parser.mli ast.cmi
 parser.cmo: parser.ml
 
-scanner.cmi : parser.cmi
+scanner.cmo: scanner.ml parser.cmi
+scanner.cmi: scanner.ml
 
-poetlang.out : poetlang poetlang.tb
-	./poetlang < poetlang.tb > poetlang.out
+poetlang.cmo: poetlang.ml poetlang.cmi scanner.cmo parser.cmi ast.cmi
+poetlang.cmi: poetlang.mli
 
-# Compile interface files explicitly
-scanner.cmo : scanner.cmi
-poetlang.cmo : poetlang.cmi
-
-# OCaml dependency hints (optional)
-poetlang.cmo : scanner.cmo parser.cmi ast.cmi
-parser.cmo : ast.cmi parser.cmi
-scanner.cmo : parser.cmi
+ast.cmo: ast.ml ast.cmi
 
 ##############################
-.PHONY : clean
-clean :
-	rm -rf *.cmi *.cmo parser.ml parser.mli scanner.ml poetlang.out poetlang
+.PHONY: clean
+clean:
+	rm -rf *.cmi *.cmo parser.ml parser.mli scanner.ml poetlang poetlang.out
