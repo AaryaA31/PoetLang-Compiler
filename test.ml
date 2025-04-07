@@ -1,6 +1,8 @@
+
 open Ast
 
-let _ =
+let () =
   let lexbuf = Lexing.from_channel stdin in
-  let program = Parser.program Scanner.token lexbuf in
-  print_endline (string_of_program program)
+  let stmts = Parser.program Scanner.token lexbuf in
+  let output = String.concat "" (List.map string_of_stmt stmts) in
+  print_endline output
