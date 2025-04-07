@@ -47,9 +47,7 @@ let rec eval_expr (vars : value VarMap.t) (e : expr) : value * value VarMap.t =
         | Or -> (match v1, v2 with VBool a, VBool b -> VBool (a || b) | _ -> failwith "Bad or")
       in
       (result, vars)
-  | Unop (Not, e1) ->
-      let v1, vars = eval_expr vars e1 in
-      (match v1 with VBool b -> (VBool (not b), vars) | _ -> failwith "Expected bool for not")
+
   | Assign (_, name, expr) ->
       let v, vars' = eval_expr vars expr in
       (v, VarMap.add name v vars')
@@ -96,6 +94,6 @@ let run_function (f : func_def) =
 
 let _ =
   let lexbuf = Lexing.from_channel stdin in
-  let ast = Parser.program Scanner.token lexbuf in
-  List.iter run_function ast
+  let (_, funcs) = Parser.program Scanner.token lexbuf in
+  List.iter run_function funcs
 

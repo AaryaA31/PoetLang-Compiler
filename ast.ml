@@ -41,7 +41,7 @@ and stmt =
   | Loop of stmt
   | Break
   | Continue
-  | BlockStmt of stmt list
+  | Block of stmt list
 
 (* int x: name binding *)
 type bind = typ * string
@@ -102,7 +102,7 @@ and string_of_stmt = function
   | Loop s -> "loop " ^ string_of_stmt s
   | Break -> "break;\n"
   | Continue -> "continue;\n"
-  | BlockStmt stmts ->  "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
+  | Block stmts ->  "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
 
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"

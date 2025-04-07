@@ -97,7 +97,7 @@ stmt:
   | IF LPAREN expr RPAREN stmt ELSE stmt { If($3, $5, $7) }
   | FOR ID IN expr LBRACE stmt_list RBRACE { For($2, $4, $6) }
   | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
-  | LBRACE stmt_list RBRACE     { BlockStmt $2 }
+  | LBRACE stmt_list RBRACE     { Block $2 }
   | BREAK SEMI { Break }
   | CONTINUE SEMI { Continue }
   | LOOP stmt { Loop($2) }
