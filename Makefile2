@@ -1,15 +1,5 @@
-##############################
-#
-# PoetLang Interpreter Test
-#
-# Compilation:
-#   Simply type "make" to compile the test executable
-#
-##############################
-
 all: test.out
 
-# Build the test executable from dependencies and test.ml
 test: ast.cmo parser.cmo scanner.cmo test.cmo
 	ocamlc -w A -o test ast.cmo parser.cmo scanner.cmo test.cmo
 
@@ -17,15 +7,15 @@ test: ast.cmo parser.cmo scanner.cmo test.cmo
 test.out: test example.mc
 	./test < example.mc > test.out
 
-# Interface rules (if .mli exists)
+
 %.cmi: %.mli
 	ocamlc -w A -c $<
 
-# Implementation rules (generates .cmi and .cmo)
+
 %.cmo %.cmi: %.ml
 	ocamlc -w A -c $<
 
-# Scanner and parser generation
+
 scanner.ml: scanner.mll
 	ocamllex $<
 
