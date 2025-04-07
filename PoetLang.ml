@@ -94,6 +94,8 @@ let run_function (f : func_def) =
 
 let _ =
   let lexbuf = Lexing.from_channel stdin in
-  let (_, funcs) = Parser.program Scanner.token lexbuf in
-  List.iter run_function funcs
+  let stmts = Parser.program Scanner.token lexbuf in
+  let _ = List.fold_left eval_stmt VarMap.empty stmts in
+  ()
+
 

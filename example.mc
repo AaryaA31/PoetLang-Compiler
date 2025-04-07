@@ -18,7 +18,7 @@ a = a;
 
 c = true;
 d = true;
-if (c && d == c || d) {
+if (c & d == c | d) {
   a = a + b;
   b = 1;
 } else
