@@ -19,36 +19,32 @@ poetlang.out: poetlang poetlang.tb
 poetlang: scanner.cmo parser.cmo poetlang.cmo ast.cmo
 	ocamlc -w A -o poetlang $^
 
-# Interface rules
+# Interface rules (only if .mli exists)
 %.cmi: %.mli
 	ocamlc -w A -c $<
 
-# Implementation rules
-%.cmo: %.ml
+# Implementation rules (generates .cmi and .cmo)
+%.cmo %.cmi: %.ml
 	ocamlc -w A -c $<
 
-# Special rules
+# Scanner and parser generation
 scanner.ml: scanner.mll
 	ocamllex $<
 
 parser.ml parser.mli: parser.mly
 	ocamlyacc parser.mly
 
-# Specific dependency: ast.mli must be compiled to build parser.mli
-ast.cmi: ast.mli
-	ocamlc -w A -c ast.mli
-
-# Order-sensitive compilation
+# Explicit dependency tracking
 parser.cmi: parser.mli ast.cmi
 parser.cmo: parser.ml
 
 scanner.cmo: scanner.ml parser.cmi
 scanner.cmi: scanner.ml
 
-poetlang.cmo: poetlang.ml poetlang.cmi scanner.cmo parser.cmi ast.cmi
-poetlang.cmi: poetlang.mli
+poetlang.cmo: poetlang.ml scanner.cmo parser.cmi ast.cmi
+poetlang.cmi: poetlang.ml
 
-ast.cmo: ast.ml ast.cmi
+ast.cmo ast.cmi: ast.ml
 
 ##############################
 .PHONY: clean
