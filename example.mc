@@ -16,9 +16,9 @@ while (a != b) {
 
 a = a;
 
-c = true;
-d = true;
-if (c & d == c | d) {
+c = True;
+d = True;
+if (c and d == c or d) {
   a = a + b;
   b = 1;
 } else
