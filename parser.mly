@@ -21,6 +21,8 @@
 
 %token BORROW MUTABLE MUTABLEBORROW
 
+%token BREAK CONTINUE LOOP
+
 %token EOF
 
 %start program
@@ -81,6 +83,14 @@ stmt_list:
     /* empty */ { [] }
   | stmt stmt_list    { $1 :: $2 }
 
+expr_list:
+    expr { [$1] }
+  | expr COMMA expr_list { $1 :: $3 }
+
+args_opt:
+    { [] }
+  | expr_list { $1 }
+
 stmt:
     expr SEMI                   { Expr $1 }
   | RETURN expr SEMI            { Return $2 }
@@ -88,6 +98,10 @@ stmt:
   | FOR ID IN expr LBRACE stmt_list RBRACE { For($2, $4, $6) }
   | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
   | LBRACE stmt_list RBRACE     { BlockStmt $2 }
+  | BREAK SEMI { Break }
+  | CONTINUE SEMI { Continue }
+  | LOOP stmt { Loop($2) }
+
 
 expr:
     INT_LITERAL           { LitInt($1) }
@@ -111,6 +125,9 @@ expr:
   | expr OR expr          { Binop($1, Or, $3) }
   | ID ASSIGN expr        { Assign(false, $1, $3) }
   | LPAREN expr RPAREN    { $2 }
+  | LBRACK expr_list RBRACK { ArrayLit($2) }
+  | LPAREN expr_list RPAREN { TupleLit($2) }
+  | ID LPAREN args_opt RPAREN { Call($1, $3) }
 
 %%
 
