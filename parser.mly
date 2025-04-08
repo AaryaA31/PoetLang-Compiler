@@ -51,6 +51,7 @@ stmt:
   | BREAK SEMI                               { Break }
   | CONTINUE SEMI                            { Continue }
   | expr SEMI                                { Expr $1 }
+  | RETURN expr SEMI                         { Return $2 }
 
 expr:
     INT_LITERAL            { LitInt $1 }
