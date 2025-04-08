@@ -39,4 +39,4 @@ ast.cmo ast.cmi: ast.ml
 ##############################
 .PHONY: clean
 clean:
-	rm -rf *.cmi *.cmo test scanner.ml parser.ml parser.mli
+	rm -rf *.cmi *.cmo test test.out scanner.ml parser.ml parser.mli
