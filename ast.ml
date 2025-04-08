@@ -4,13 +4,7 @@ type operator =
   | Add | Sub | Mul | Div | Mod
   | Eq | Neq | Lt | Lte | Gt | Gte
   | And | Or
-(* 
-type unop =
-  | Neg
-  | Pos
-  | Not
-  | Deref
-  | Borrow of bool  true = mutable *)
+
     
 type typ =
   | Int
@@ -27,7 +21,7 @@ type expr =
   | LitBool of bool
   | LitString of string
   | Id of string
-  | Assign of bool * string * expr    (* bool = is_mutable *)
+  | Assign of string * expr  
   | ArrayLit of expr list
   | TupleLit of expr list
   | Call of string * expr list
@@ -89,7 +83,7 @@ let rec string_of_expr = function
   | LitString s -> "\"" ^ s ^ "\""              
   | Id s -> s
   | Binop (e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-  | Assign (is_mut, id, e) -> (if is_mut then "mut " else "") ^ id ^ " = " ^ string_of_expr e
+  | Assign (id, e) -> id ^ " = " ^ string_of_expr e
   | ArrayLit el -> "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
   | TupleLit el -> "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Call (f, el) -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
