@@ -23,3 +23,5 @@ if (c and d == c or d) {
   b = 1;
 } else
   a = 1;
+
+return 1;
