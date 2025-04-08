@@ -1,52 +1,42 @@
-##############################
-#
-# PoetLang Interpreter
-#
-# Compilation:
-# Option 1: Simply type "make" to compile the interpreter
-# Option 2: Use "ocamlbuild poetlang.native" to build manually
-#
-# Test input is in poetlang.tb
-# Output is saved to poetlang.out
-#
-##############################
+all: test.out
 
-all: poetlang.out
+test: ast.cmo parser.cmo scanner.cmo test.cmo
+	ocamlc -w A -o test ast.cmo parser.cmo scanner.cmo test.cmo
 
-poetlang.out: poetlang example.mc
-	./poetlang < example.mc > poetlang.out
 
-poetlang: scanner.cmo parser.cmo poetlang.cmo ast.cmo
-	ocamlc -w A -o poetlang $^
+test.out: test example.mc
+	./test < example.mc > test.out
 
-# Interface rules (only if .mli exists)
+
 %.cmi: %.mli
 	ocamlc -w A -c $<
 
-# Implementation rules (generates .cmi and .cmo)
+
 %.cmo %.cmi: %.ml
 	ocamlc -w A -c $<
 
-# Scanner and parser generation
+
 scanner.ml: scanner.mll
 	ocamllex $<
 
 parser.ml parser.mli: parser.mly
 	ocamlyacc parser.mly
 
-# Explicit dependency tracking
-parser.cmi: parser.mli ast.cmi
-parser.cmo: parser.ml
+parser.cmi: parser.mli
+	ocamlc -w A -c parser.mli
+
+parser.cmo: parser.ml parser.cmi
+	ocamlc -w A -c parser.ml
+
 
 scanner.cmo: scanner.ml parser.cmi
 scanner.cmi: scanner.ml
 
-poetlang.cmo: poetlang.ml scanner.cmo parser.cmi ast.cmi
-poetlang.cmi: poetlang.ml
+test.cmo test.cmi: test.ml scanner.cmo parser.cmi ast.cmi
 
 ast.cmo ast.cmi: ast.ml
 
 ##############################
 .PHONY: clean
 clean:
-	rm -rf *.cmi *.cmo parser.ml parser.mli scanner.ml poetlang poetlang.out
+	rm -rf *.cmi *.cmo test scanner.ml parser.ml parser.mli
