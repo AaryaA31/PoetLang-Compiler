@@ -24,4 +24,4 @@ if (c and d == c or d) {
 } else
   a = 1;
 
-return 1;
+print("hello");
