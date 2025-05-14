@@ -1,5 +1,3 @@
-(* Ast.ml *)
-
 type operator =
   | Add | Sub | Mul | Div | Mod
   | Eq | Neq | Lt | Lte | Gt | Gte
@@ -11,8 +9,7 @@ type typ =
   | Float
   | Bool
   | String
-  | Tuple of typ list
-  | Array of typ * int  
+
 
 type expr =
   | Binop of expr * operator * expr
@@ -22,25 +19,19 @@ type expr =
   | LitString of string
   | Id of string
   | Assign of string * expr  
-  | ArrayLit of expr list
-  | TupleLit of expr list
   | Call of string * expr list
 
 and stmt =
   | Expr of expr
   | Return of expr
   | If of expr * stmt * stmt
-  | For of string * expr * stmt list
   | While of expr * stmt
-  | Loop of stmt
-  | Break
-  | Continue
   | Block of stmt list
 
-(* int x: name binding *)
-type bind = typ * string
 
-(* func_def: ret_typ fname formals locals body *)
+
+type bind = typ * string * expr option
+
 type func_def = {
   rtyp: typ;
   fname: string;
@@ -67,13 +58,12 @@ let string_of_op = function
   | Gt -> ">"
   | Gte -> ">="
 
-let rec string_of_typ = function
+let string_of_typ = function
   Int -> "int"
 | Float -> "float"
 | Bool -> "bool"
 | String -> "string"
-| Tuple ts ->  "(" ^ String.concat ", " (List.map string_of_typ ts) ^ ")"
-| Array (t, n) -> "array[" ^ string_of_typ t ^ "; " ^ string_of_int n ^ "]"
+
 
 let rec string_of_expr = function
     LitInt l -> string_of_int l
@@ -84,26 +74,26 @@ let rec string_of_expr = function
   | Id s -> s
   | Binop (e1, o, e2) -> string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Assign (id, e) -> id ^ " = " ^ string_of_expr e
-  | ArrayLit el -> "[" ^ String.concat ", " (List.map string_of_expr el) ^ "]"
-  | TupleLit el -> "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Call (f, el) -> f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
 and string_of_stmt = function
     Expr expr -> string_of_expr expr ^ ";\n"
   | Return expr -> "return " ^ string_of_expr expr ^ ";\n"
   | If (e, s1, s2) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  | For (v, e, stmts) -> "for " ^ v ^ " in " ^ string_of_expr e ^ " do\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "done\n"
   | While (e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
-  | Loop s -> "loop " ^ string_of_stmt s
-  | Break -> "break;\n"
-  | Continue -> "continue;\n"
   | Block stmts ->  "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
 
 
-let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
+  let string_of_vdecl (t, id, init_opt) =
+    let base = string_of_typ t ^ " " ^ id in
+    match init_opt with
+    | None ->
+        base ^ ";\n"
+    | Some e ->
+        base ^ " = " ^ string_of_expr e ^ ";\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.rtyp ^ " " ^
-  fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
+  fdecl.fname ^ "(" ^ String.concat ", " (List.map (fun (_typ, name, _init) -> name) fdecl.formals) ^  
   ")\n{\n" ^
   String.concat "" (List.map string_of_vdecl fdecl.locals) ^
   String.concat "" (List.map string_of_stmt fdecl.body) ^
