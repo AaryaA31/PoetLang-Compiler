@@ -119,24 +119,56 @@ let build_function_body fdecl =
       | SLitString s -> L.build_global_stringptr s "str" builder
       | SAssign (s, e) -> let e' = build_expr builder e in
         ignore(L.build_store e' (lookup s) builder); e'
-      | SBinop (e1, op, e2) ->
-        let e1' = build_expr builder e1
-        and e2' = build_expr builder e2 in
-        (match op with
-           A.Add     -> L.build_add
-         | A.Sub     -> L.build_sub
-         | A.And     -> L.build_and
-         | A.Or      -> L.build_or
-         | A.Eq      -> L.build_icmp L.Icmp.Eq
-         | A.Neq     -> L.build_icmp L.Icmp.Ne
-         | A.Lt    -> L.build_icmp L.Icmp.Slt
-         | A.Gt   -> L.build_icmp L.Icmp.Sgt
-         | A.Lte -> L.build_icmp L.Icmp.Sle
-         | A.Gte -> L.build_icmp L.Icmp.Sge
-         | A.Mul  -> L.build_mul   
-         | A.Div  -> L.build_sdiv     
-         | A.Mod  -> L.build_srem     
-        ) e1' e2' "tmp" builder
+      | SBinop ((t1, sx1), op, (t2, sx2)) ->
+      
+        if t1 <> t2 then
+          failwith
+            (Printf.sprintf
+                "type error in binary op %s: left is %s but right is %s"
+                (string_of_op op)
+                (string_of_typ t1)
+                (string_of_typ t2)
+            )
+        else
+          let v1 = build_expr builder (t1, sx1) in
+          let v2 = build_expr builder (t2, sx2) in
+          begin match op, t1 with
+      
+          | Add, Int -> L.build_add v1 v2 "tmp" builder
+          | Sub, Int -> L.build_sub v1 v2 "tmp" builder
+          | Mul, Int -> L.build_mul v1 v2 "tmp" builder
+          | Div, Int -> L.build_sdiv v1 v2 "tmp" builder
+          | Mod, Int -> L.build_srem v1 v2 "tmp" builder
+    
+          | Add, Float -> L.build_fadd v1 v2 "tmp" builder
+          | Sub, Float -> L.build_fsub v1 v2 "tmp" builder
+          | Mul, Float -> L.build_fmul v1 v2 "tmp" builder
+          | Div, Float -> L.build_fdiv v1 v2 "tmp" builder
+  
+          | Eq,  Int -> L.build_icmp L.Icmp.Eq  v1 v2 "tmp" builder
+          | Neq, Int -> L.build_icmp L.Icmp.Ne  v1 v2 "tmp" builder
+          | Lt,  Int -> L.build_icmp L.Icmp.Slt v1 v2 "tmp" builder
+          | Gte, Int -> L.build_icmp L.Icmp.Sge v1 v2 "tmp" builder
+          | Gt,  Int -> L.build_icmp L.Icmp.Sgt v1 v2 "tmp" builder
+          | Lte, Int -> L.build_icmp L.Icmp.Sle v1 v2 "tmp" builder
+    
+          | Eq,    Float -> L.build_fcmp L.Fcmp.Oeq v1 v2 "tmp" builder
+          | Neq,   Float -> L.build_fcmp L.Fcmp.One v1 v2 "tmp" builder
+          | Lt,    Float -> L.build_fcmp L.Fcmp.Olt v1 v2 "tmp" builder
+          | Gte,   Float -> L.build_fcmp L.Fcmp.Oge v1 v2 "tmp" builder
+          | Gt,    Float -> L.build_fcmp L.Fcmp.Ogt v1 v2 "tmp" builder
+          | Lte,   Float -> L.build_fcmp L.Fcmp.Ole v1 v2 "tmp" builder
+  
+          
+          | And, Bool -> L.build_and v1 v2 "tmp" builder
+          | Or,  Bool -> L.build_or  v1 v2 "tmp" builder
+    
+          | _ ->
+              failwith
+                (Printf.sprintf
+                    "illegal operator %s on type %s"
+                    (string_of_op op) (string_of_typ t1))
+          end
       | SCall ("print_int", [e]) ->
         L.build_call printf_func [| int_format_str ; (build_expr builder e) |]
           "printf" builder
