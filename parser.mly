@@ -8,7 +8,7 @@
 %token <bool> BOOL_LITERAL
 %token <string> ID
 
-%token DEF RETURN IF ELSE WHILE FOR IN BREAK CONTINUE LOOP
+%token DEF RETURN IF ELSE WHILE RHYME
 %token TRUE FALSE
 %token INT FLOAT BOOL STRING
 
@@ -16,8 +16,8 @@
 %token EQ NEQ LT GT LEQ GEQ
 %token AND OR NOT
 
-%token ASSIGN SEMI COMMA COLON
-%token LPAREN RPAREN LBRACE RBRACE
+%token ASSIGN SEMI COMMA COLON ARR TUP
+%token LPAREN RPAREN LBRACE RBRACE LBRACKET RBRACKET
 
 %token EOF
 
@@ -37,28 +37,44 @@
 
 program:
   decls stmt_list_opt EOF {
-    let (vdecl, fdecls) = $1 in 
-    let s_stmt = $2 in 
-    let funcs = if fdecls = [] then [{ rtyp = Int; fname = "fake_func"; formals = []; locals = []; body = s_stmt }]
-    else fdecls
+    let (globals, fdecls) = $1 in
+    let top_stmts = $2 in
+    let funcs =
+      if fdecls = [] then
+        [{
+          rtyp    = Int;
+          fname   = "main";
+          formals = [];     
+          locals  = globals;  
+          body    = top_stmts;
+        }]
+      else
+        fdecls
     in
-    (vdecl, funcs)
+
+    let globals =
+      if fdecls = [] then [] else globals
+    in
+    (globals, funcs)
   }
 
-stmt_list_opt:
-  | stmt_list         { $1 }
 
 decls:
    /* nothing */ { ([], [])               }
  | vdecl SEMI decls { (($1 :: fst $3), snd $3) }
  | fdecl decls { (fst $2, ($1 :: snd $2)) }
 
+stmt_list_opt:
+  | stmt_list         { $1 }
+
+
 vdecl_list:
   /*nothing*/ { [] }
   | vdecl SEMI vdecl_list  {  $1 :: $3 }
 
 vdecl:
-  typ ID { ($1, $2) }
+  typ ID { ($1, $2, None) }
+  | typ ID ASSIGN expr { ($1 , $2, Some $4) }
 
 typ:
     INT     { Int }
@@ -67,14 +83,14 @@ typ:
   | STRING  { String }
 
 fdecl:
-  vdecl LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+  typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
   {
     {
-      rtyp=fst $1;
-      fname=snd $1;
-      formals=$3;
-      locals=$6;
-      body=$7
+      rtyp=$1;
+      fname=$2;
+      formals=$4;
+      locals=$7;
+      body=$8
     }
   }
 
@@ -96,10 +112,10 @@ stmt:
   | IF LPAREN expr RPAREN stmt ELSE stmt     { If ($3, $5, $7) }
   | WHILE LPAREN expr RPAREN stmt            { While ($3, $5) }
   | LBRACE stmt_list RBRACE                  { Block $2 }
-  | BREAK SEMI                               { Break }
-  | CONTINUE SEMI                            { Continue }
   | expr SEMI                                { Expr $1 }
   | RETURN expr SEMI                         { Return $2 }
+
+
 
 expr:
     INT_LITERAL            { LitInt $1 }
@@ -124,7 +140,7 @@ expr:
   | expr OR expr           { Binop ($1, Or, $3) }
   | ID ASSIGN expr         { Assign($1, $3) }
   | ID LPAREN args_opt RPAREN  { Call ($1, $3) }
-  | LPAREN expr RPAREN     { $2 }
+
 
 
 args_opt:
