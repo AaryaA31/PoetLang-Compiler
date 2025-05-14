@@ -2,13 +2,23 @@ int a;
 int b;
 bool c;
 bool d;
+float e;
+
+
+
+
+
 
 a = 18;
 b = 9;
+e = 1.7;
+
+
 
 /*
 loop body
 */
+
 while (a != b) {
   if (b < a) a = a - b;
   else b = b - a;
@@ -24,4 +34,5 @@ if (c and d == c or d) {
 } else
   a = 1;
 
-print("hello");
+print_string("hello");
+
