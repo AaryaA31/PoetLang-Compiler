@@ -1,7 +1,7 @@
 ### Build the Compiler
 
 ```
-ocamlbuild -pkgs llvm poetlang.native
+ocamlbuild -pkgs llvm PoetLang.native
 ```
 
 ### Run the compiler and generate llvm code
