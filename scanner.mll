@@ -19,12 +19,13 @@ rule token = parse
 | block_comment          { token lexbuf }
 
 (* Keywords *)
+| "arr"                  { ARR } 
+| "tup"                  { TUP }
 | "int"                  { INT }
 | "float"                { FLOAT }
 | "bool"                 { BOOL }
 | "string"               { STRING }
 | "return"               { RETURN }
-| "for"                  { FOR }
 | "while"                { WHILE }
 | "if"                   { IF }
 | "else"                 { ELSE }
@@ -34,6 +35,7 @@ rule token = parse
 | "not"                  { NOT }
 | "True"                 { BOOL_LITERAL(true) }
 | "False"                { BOOL_LITERAL(false) }
+| "rhyme"                { RHYME}
 
 (* Operators *)
 | "+"                    { PLUS }
@@ -57,6 +59,10 @@ rule token = parse
 | ","                    { COMMA }
 | ":"                    { COLON }
 | ";"                    { SEMI }
+
+| '['                    { LBRACKET }
+| ']'                    { RBRACKET }
+
 
 (* Literals *)
 | digit+ as lxm                   { INT_LITERAL(int_of_string lxm) }
