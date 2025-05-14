@@ -25,6 +25,6 @@ lli example.out
 ### Other files
 
 - `example.mc`: a sample source code that should not work since it doesn't rhyme
-- 'example2.mc': a sample source code of gcd with rhyme scheme that works
-- 'rhyme_example.mc': a sample source code with no main func that should work with rhyme scheme
+- `example2.mc`: a sample source code of gcd with rhyme scheme that works
+- `rhyme_example.mc`: a sample source code with no main func that should work with rhyme scheme
 - `example.out`: a sample compiled code
