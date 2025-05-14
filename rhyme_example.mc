@@ -1,11 +1,15 @@
-int cat;
+int cat = 1;
 int bat;
 bool flat;
+string rat = "hurray";
 
-cat = 20;
+/*cat = 20;*/
 bat = 8;
-flat = true;
+/*flat = True;*/
 
+
+
+/*
 while (cat != bat) {
   if (cat > bat) {
     cat = cat - bat;
@@ -13,7 +17,10 @@ while (cat != bat) {
     bat = bat - cat;
   }
 }
+*/
 
-print(cat);
-print(bat);
-print(flat);
+print_bool(flat);
+print_int(cat);
+print_int(bat);
+print_string(rat);
+
