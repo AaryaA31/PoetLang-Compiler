@@ -1,101 +1,29 @@
-(* PoetLang.ml *)
+  
+   Printexc.record_backtrace true;
+   type action = Ast | Sast | LLVM_IR
 
-open Ast
-module VarMap = Map.Make(String)
+   let () =
+     let action = ref LLVM_IR in
+     let set_action a () = action := a in
+     let speclist = [
+       ("-a", Arg.Unit (set_action Ast), "Print the AST");
+       ("-s", Arg.Unit (set_action Sast), "Print the SAST");
+       ("-l", Arg.Unit (set_action LLVM_IR), "Print the generated LLVM IR");
+     ] in
+     let usage_msg = "usage: ./PoetLang.native [-a|-s|-l] [file.mc]" in
+     let channel = ref stdin in
+     Arg.parse speclist (fun filename -> channel := open_in filename) usage_msg;
+   
+     let lexbuf = Lexing.from_channel !channel in
+   
+     let ast = Parser.program Scanner.token lexbuf in
+    
 
-type value =
-  | VInt of int
-  | VFloat of float
-  | VBool of bool
-  | VString of string
-
-let string_of_value = function
-  | VInt n -> string_of_int n
-  | VFloat f -> string_of_float f
-  | VBool b -> string_of_bool b
-  | VString s -> s
-
-let rec eval_expr (vars : value VarMap.t) (e : expr) : value * value VarMap.t =
-  match e with
-  | LitInt n -> (VInt n, vars)
-  | LitFloat f -> (VFloat f, vars)
-  | LitBool b -> (VBool b, vars)
-  | LitString s -> (VString s, vars)
-  | Id x ->
-      (try (VarMap.find x vars, vars)
-       with Not_found -> failwith ("Undefined variable " ^ x))
-  | Binop (e1, op, e2) ->
-      let v1, vars = eval_expr vars e1 in
-      let v2, vars = eval_expr vars e2 in
-      let int_op f = match v1, v2 with
-        | VInt a, VInt b -> VInt (f a b)
-        | _ -> failwith "Type error in arithmetic"
-      in
-      let result = match op with
-        | Add -> int_op ( + )
-        | Sub -> int_op ( - )
-        | Mul -> int_op ( * )
-        | Div -> int_op ( / )
-        | Mod -> int_op (mod)
-        | Eq -> VBool (v1 = v2)
-        | Neq -> VBool (v1 <> v2)
-        | Lt -> VBool (v1 < v2)
-        | Lte -> VBool (v1 <= v2)
-        | Gt -> VBool (v1 > v2)
-        | Gte -> VBool (v1 >= v2)
-        | And -> (match v1, v2 with VBool a, VBool b -> VBool (a && b) | _ -> failwith "Bad and")
-        | Or -> (match v1, v2 with VBool a, VBool b -> VBool (a || b) | _ -> failwith "Bad or")
-      in
-      (result, vars)
-
-  | Assign (_, name, expr) ->
-      let v, vars' = eval_expr vars expr in
-      (v, VarMap.add name v vars')
-  | Call ("print", args) ->
-      let vals, vars = eval_args vars args in
-      List.iter (fun v -> print_endline (string_of_value v)) vals;
-      (VInt 0, vars)
-  | _ -> failwith "Unsupported expression"
-
-and eval_args vars = function
-  | [] -> ([], vars)
-  | hd :: tl ->
-      let v1, vars = eval_expr vars hd in
-      let rest, vars = eval_args vars tl in
-      (v1 :: rest, vars)
-
-let rec eval_stmt (vars : value VarMap.t) (stmt : stmt) : value VarMap.t =
-  match stmt with
-  | Expr e -> let _, vars = eval_expr vars e in vars
-  | Return e -> let v, _ = eval_expr vars e in
-                print_endline (string_of_value v); vars
-  | If (cond, then_s, else_s) ->
-      let v, vars = eval_expr vars cond in
-      (match v with
-       | VBool true -> eval_stmt vars then_s
-       | VBool false -> eval_stmt vars else_s
-       | _ -> failwith "Non-boolean condition in if")
-  | While (cond, body) ->
-      let rec loop vars =
-        let v, vars = eval_expr vars cond in
-        match v with
-        | VBool true -> loop (eval_stmt vars body)
-        | VBool false -> vars
-        | _ -> failwith "Non-boolean condition in while"
-      in loop vars
-  | Block stmts ->
-      List.fold_left eval_stmt vars stmts
-  | _ -> failwith "Unsupported statement"
-
-let run_function (f : func_def) =
-  (* args ignored for now *)
-  let vars = VarMap.empty in
-  ignore (List.fold_left eval_stmt vars f.body)
-
-let _ =
-  let lexbuf = Lexing.from_channel stdin in
-  let stmts = Parser.program Scanner.token lexbuf in
-  let _ = List.fold_left eval_stmt VarMap.empty stmts in
-  ()
-
-
+     match !action with
+       Ast -> print_string (Ast.string_of_program ast)
+     | _ -> let sast = Semant.check ast in
+       match !action with
+         Ast     -> ()
+       | Sast    -> print_string (Sast.string_of_sprogram sast)
+       | LLVM_IR -> print_string (Llvm.string_of_llmodule (Irgen.translate sast))
+   
