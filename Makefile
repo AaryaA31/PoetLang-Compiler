@@ -1,42 +1,27 @@
-all: test.out
 
-test: ast.cmo parser.cmo scanner.cmo test.cmo
-	ocamlc -w A -o test ast.cmo parser.cmo scanner.cmo test.cmo
+BUILD_CMD = ocamlbuild -use-ocamlfind -pkgs llvm PoetLang.native
 
+MC_SRCS := $(wildcard *example.mc)
+OUTS    := $(MC_SRCS:.mc=.out)
+BINARY  := poetlang.native
 
-test.out: test example.mc
-	./test < example.mc > test.out
+.PHONY: all build test clean
 
+all: build test
 
-%.cmi: %.mli
-	ocamlc -w A -c $<
+build:
+	$(BUILD_CMD)
 
+test: build $(OUTS)
+	@echo "== Running LLVM IR =="
+	@for out in $(OUTS); do \
+	  printf "\n-- $$out --\n"; \
+	  lli $$out; \
+	done
 
-%.cmo %.cmi: %.ml
-	ocamlc -w A -c $<
+%.out: %.mc build
+	./$(BINARY) -l $< > $@
 
-
-scanner.ml: scanner.mll
-	ocamllex $<
-
-parser.ml parser.mli: parser.mly
-	ocamlyacc parser.mly
-
-parser.cmi: parser.mli
-	ocamlc -w A -c parser.mli
-
-parser.cmo: parser.ml parser.cmi
-	ocamlc -w A -c parser.ml
-
-
-scanner.cmo: scanner.ml parser.cmi
-scanner.cmi: scanner.ml
-
-test.cmo test.cmi: test.ml scanner.cmo parser.cmi ast.cmi
-
-ast.cmo ast.cmi: ast.ml
-
-##############################
-.PHONY: clean
 clean:
-	rm -rf *.cmi *.cmo test test.out scanner.ml parser.ml parser.mli
+	ocamlbuild -clean
+	rm -f $(OUTS)
